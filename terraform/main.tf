@@ -6,7 +6,6 @@ resource "google_container_cluster" "primary" {
   # Enabled for GCP free tier
   enable_autopilot = true
 
-  # TODO: Make nodes private
   # master_authorized_networks_config {
   #   cidr_blocks {
   #     cidr_block = "REDACTED"

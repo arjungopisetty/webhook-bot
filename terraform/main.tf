@@ -9,7 +9,7 @@ resource "google_container_cluster" "primary" {
   # TODO: Make nodes private
   # master_authorized_networks_config {
   #   cidr_blocks {
-  #     cidr_block = "REDACTED"
+  #     cidr_block = var.authorized_source_ranges
   #     display_name = "Home"
   #   }
   # }

@@ -41,6 +41,36 @@ spec:
     requests:
       storage: 500Mi
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab
+  namespace: default
+spec:
+  selector:
+    app: gitlab
+  type: ClusterIP
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+    - name: ssh
+      protocol: TCP
+      port: 22
+---
+# https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitlab
+  namespace: default
+spec:
+  defaultBackend:
+    service:
+      name: gitlab
+      port:
+        number: 80
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -77,7 +107,7 @@ spec:
             httpGet:
               path: /-/liveness
               port: 80
-            initialDelaySeconds: 1500
+            initialDelaySeconds: 600
             timeoutSeconds: 5
             periodSeconds: 10
             failureThreshold: 50
@@ -85,10 +115,10 @@ spec:
             httpGet:
               path: /-/readiness
               port: 80
-            initialDelaySeconds: 1200
+            initialDelaySeconds: 180
             timeoutSeconds: 3
             periodSeconds: 10
-            failureThreshold: 50
+            failureThreshold: 100
           ports:
             - containerPort: 80
               name: http
@@ -98,12 +128,17 @@ spec:
             # TODO: Configure prometheus
             - name: GITLAB_OMNIBUS_CONFIG
               value: |
-                prometheus['monitor_kubernetes'] = false
+                gitlab_rails['monitoring_whitelist'] = ['0.0.0.0/0']
+                prometheus['enable'] = false
+                grafana['enable'] = false
                 postgresql['enable'] = false
+                redis['enable'] = false
                 gitlab_rails['db_username'] = "postgres"
                 gitlab_rails['db_password'] = "password"
                 gitlab_rails['db_host'] = "postgres.default.svc.cluster.local"
                 gitlab_rails['db_database'] = "postgres"
+                gitlab_rails['redis_host'] = "redis.default.svc.cluster.local"
+                gitlab_rails['redis_port'] = 6379
           volumeMounts:
             - mountPath: /var/opt/gitlab
               name: gitlab-data
@@ -121,33 +156,3 @@ spec:
         - name: gitlab-config
           persistentVolumeClaim:
             claimName: gitlab-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: gitlab
-  namespace: default
-spec:
-  selector:
-    app: gitlab
-  type: ClusterIP
-  ports:
-    - name: http
-      protocol: TCP
-      port: 80
-    - name: ssh
-      protocol: TCP
-      port: 22
----
-# https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: gitlab
-  namespace: default
-spec:
-  defaultBackend:
-    service:
-      name: gitlab
-      port:
-        number: 80

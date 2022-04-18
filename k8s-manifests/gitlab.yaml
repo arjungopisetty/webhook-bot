@@ -112,12 +112,42 @@ spec:
             - mountPath: /etc/gitlab
               name: gitlab-config
       volumes:
-      - name: gitlab-data
-        persistentVolumeClaim:
-          claimName: gitlab-data
-      - name: gitlab-logs
-        persistentVolumeClaim:
-          claimName: gitlab-logs
-      - name: gitlab-config
-        persistentVolumeClaim:
-          claimName: gitlab-config
+        - name: gitlab-data
+          persistentVolumeClaim:
+            claimName: gitlab-data
+        - name: gitlab-logs
+          persistentVolumeClaim:
+            claimName: gitlab-logs
+        - name: gitlab-config
+          persistentVolumeClaim:
+            claimName: gitlab-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab
+  namespace: default
+spec:
+  selector:
+    app: gitlab
+  type: ClusterIP
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+    - name: ssh
+      protocol: TCP
+      port: 22
+---
+# https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitlab
+  namespace: default
+spec:
+  defaultBackend:
+    service:
+      name: gitlab
+      port:
+        number: 80

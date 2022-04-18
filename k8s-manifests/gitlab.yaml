@@ -53,6 +53,9 @@ spec:
     matchLabels:
       app: gitlab
   replicas: 1
+  strategy:
+    # Avoid resource locking on PVCs
+    type: Recreate
   template:
     metadata:
       labels:
@@ -65,31 +68,27 @@ spec:
             requests:
               memory: 4Gi
               cpu: "4"
-              ephemeral-storage: 2Gi
+              ephemeral-storage: 3Gi
             limits:
               memory: 4Gi
               cpu: "4"
-              ephemeral-storage: 2Gi
+              ephemeral-storage: 3Gi
           livenessProbe:
-            # httpGet:
-            #   path: /-/liveness
-            #   port: 80
-            # initialDelaySeconds: 2160
-            # timeoutSeconds: 5
-            exec:
-              command:
-                - ls
-          readinessProbe:
-            # httpGet:
-            #   path: /-/readiness
-            #   port: 80
-            # initialDelaySeconds: 360
-            # timeoutSeconds: 1
             httpGet:
-              path: /
+              path: /-/liveness
               port: 80
-            initialDelaySeconds: 10
-            timeoutSeconds: 1
+            initialDelaySeconds: 1500
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 50
+          readinessProbe:
+            httpGet:
+              path: /-/readiness
+              port: 80
+            initialDelaySeconds: 1200
+            timeoutSeconds: 3
+            periodSeconds: 10
+            failureThreshold: 50
           ports:
             - containerPort: 80
               name: http
@@ -98,19 +97,13 @@ spec:
           env:
             # TODO: Configure prometheus
             - name: GITLAB_OMNIBUS_CONFIG
-              value: "prometheus['monitor_kubernetes'] = false"
-            - name: DB_TYPE
-              value: postgres
-            - name: DB_HOST
-              value: postgres
-            - name: DB_PORT
-              value: "5432"
-            - name: DB_USER
-              value: postgres
-            - name: DB_PASS
-              value: password
-            - name: DB_NAME
-              value: postgres
+              value: |
+                prometheus['monitor_kubernetes'] = false
+                postgresql['enable'] = false
+                gitlab_rails['db_username'] = "postgres"
+                gitlab_rails['db_password'] = "password"
+                gitlab_rails['db_host'] = "postgres.default.svc.cluster.local"
+                gitlab_rails['db_database'] = "postgres"
           volumeMounts:
             - mountPath: /var/opt/gitlab
               name: gitlab-data

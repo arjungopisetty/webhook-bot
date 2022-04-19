@@ -1,1 +1,56 @@
-# TODO: Create k8s manifests for Rocket Chat
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocket-chat
+  namespace: default
+spec:
+  selector:
+    app: rocket-chat
+  type: ClusterIP
+  ports:
+    - name: rocket-chat
+      protocol: TCP
+      port: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rocket-chat
+  namespace: default
+  labels:
+    app: rocket-chat
+spec:
+  selector:
+    matchLabels:
+      app: rocket-chat
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: rocket-chat
+    spec:
+      containers:
+        - name: rocket-chat
+          image: rocket.chat:4.6.2
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 70
+            timeoutSeconds: 5
+            failureThreshold: 10
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 10
+          ports:
+            - containerPort: 3000
+              name: nodejs
+          env:
+            - name: ROOT_URL
+              value: http://rocket-chat.default.svc.cluster.local
+            - name: MONGO_OPLOG_URL
+              value: "mongodb://mongo:27017/local"
+            - name: MONGO_URL
+              value: "mongodb://mongo:27017"

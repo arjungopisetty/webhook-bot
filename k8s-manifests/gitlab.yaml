@@ -11,7 +11,6 @@ spec:
   resources:
     requests:
       storage: 2Gi
-
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -139,6 +138,8 @@ spec:
                 gitlab_rails['db_database'] = "postgres"
                 gitlab_rails['redis_host'] = "redis.default.svc.cluster.local"
                 gitlab_rails['redis_port'] = 6379
+            - name: GITLAB_ROOT_PASSWORD
+              value: password
           volumeMounts:
             - mountPath: /var/opt/gitlab
               name: gitlab-data

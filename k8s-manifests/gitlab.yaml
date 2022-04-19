@@ -11,7 +11,6 @@ spec:
   resources:
     requests:
       storage: 2Gi
-
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -63,13 +62,19 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: gitlab
-  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: "gce"
 spec:
-  defaultBackend:
-    service:
-      name: gitlab
-      port:
-        number: 80
+  rules:
+    - http:
+        paths:
+          - path: /*
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: gitlab
+                port:
+                  number: 80
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -139,6 +144,8 @@ spec:
                 gitlab_rails['db_database'] = "postgres"
                 gitlab_rails['redis_host'] = "redis.default.svc.cluster.local"
                 gitlab_rails['redis_port'] = 6379
+            - name: GITLAB_ROOT_PASSWORD
+              value: password
           volumeMounts:
             - mountPath: /var/opt/gitlab
               name: gitlab-data

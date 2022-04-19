@@ -1,3 +1,14 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -23,6 +34,8 @@ spec:
   selector:
     matchLabels:
       app: postgres
+  strategy:
+    type: Recreate
   replicas: 1
   template:
     metadata:
@@ -31,11 +44,26 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres
+          image: postgres:14
+          resources:
+           limits:
+             cpu: "1"
+             memory: "4Gi"
+           requests:
+             cpu: "1"
+             memory: "4Gi"
           env:
             - name: POSTGRES_PASSWORD
               value: password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+           - mountPath: /var/lib/postgresql/data
+             name: db
           ports:
             - containerPort: 5432
               name: postgres
-      restartPolicy: Always
+      volumes:
+       - name: db
+         persistentVolumeClaim:
+           claimName: postgres

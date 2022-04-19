@@ -33,15 +33,19 @@ spec:
         - name: rocket-chat
           image: rocket.chat:4.6.2
           livenessProbe:
-            tcpSocket:
-              port: 3000
-            initialDelaySeconds: 70
-            timeoutSeconds: 5
-            failureThreshold: 10
-          readinessProbe:
-            tcpSocket:
-              port: 3000
+            httpGet:
+              path: /api/info
+              port: nodejs
             initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/info
+              port: nodejs
+            initialDelaySeconds: 15
+            periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 10
           ports:
@@ -54,3 +58,21 @@ spec:
               value: "mongodb://mongo:27017/local"
             - name: MONGO_URL
               value: "mongodb://mongo:27017"
+            - name: ADMIN_USERNAME
+              value: admin
+            - name: ADMIN_NAME
+              value: admin
+            - name: ADMIN_PASS
+              value: password
+            - name: ADMIN_EMAIL
+              value: admin@example.com
+          volumeMounts:
+            - name: rocket-data
+              mountPath: /app/uploads
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: rocket-data
+        emptyDir: {}

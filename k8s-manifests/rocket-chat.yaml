@@ -32,6 +32,15 @@ spec:
       containers:
         - name: rocket-chat
           image: rocket.chat:4.6.2
+          resources:
+            requests:
+              memory: 2Gi
+              cpu: 1
+              ephemeral-storage: 500Mi
+            limits:
+              memory: 2Gi
+              cpu: 1
+              ephemeral-storage: 500Mi
           livenessProbe:
             httpGet:
               path: /api/info

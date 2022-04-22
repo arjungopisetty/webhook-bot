@@ -102,11 +102,11 @@ spec:
           resources:
             requests:
               memory: 4Gi
-              cpu: 1
+              cpu: 2
               ephemeral-storage: 500Mi
             limits:
               memory: 4Gi
-              cpu: 1
+              cpu: 2
               ephemeral-storage: 500Mi
           livenessProbe:
             httpGet:

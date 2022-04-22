@@ -32,6 +32,15 @@ spec:
       containers:
         - name: redis
           image: redis:7.0-rc
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: "0.5"
+              ephemeral-storage: 100Mi
+            limits:
+              memory: 512Mi
+              cpu: "0.5"
+              ephemeral-storage: 100Mi
           livenessProbe:
             tcpSocket:
               port: 6379

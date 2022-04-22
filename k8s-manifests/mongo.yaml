@@ -32,6 +32,15 @@ spec:
       containers:
         - name: mongo
           image: mongo:4.2.2
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: "0.5"
+              ephemeral-storage: 100Mi
+            limits:
+              memory: 512Mi
+              cpu: "0.5"
+              ephemeral-storage: 100Mi
           command:
             - mongod
             - "--bind_ip_all"

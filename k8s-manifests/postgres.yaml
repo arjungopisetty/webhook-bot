@@ -46,12 +46,14 @@ spec:
         - name: postgres
           image: postgres:14
           resources:
-           limits:
-             cpu: "1"
-             memory: "4Gi"
-           requests:
-             cpu: "1"
-             memory: "4Gi"
+            requests:
+              memory: 512Mi
+              cpu: "0.5"
+              ephemeral-storage: 100Mi
+            limits:
+              memory: 512Mi
+              cpu: "0.5"
+              ephemeral-storage: 100Mi
           env:
             - name: POSTGRES_PASSWORD
               value: password
